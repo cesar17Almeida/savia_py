@@ -1,0 +1,27 @@
+# Savia (Python) — runtime dependencies
+# Deploy target: Raspberry Pi Zero 2 W (Linux ARMv8)
+#
+# Paquetes marcados con `; sys_platform == "linux"` no se instalan en
+# macOS de desarrollo, pero todo lo agnóstico (parsers, MQTT, numpy)
+# sí — así puedes correr unit tests offline en el portátil.
+
+# --- Sensor I/O ----------------------------------------------
+pyserial>=3.5                                              # SDI-12 sobre UART
+smbus2>=0.4.3 ; sys_platform == "linux"                    # I2C
+spidev>=3.6 ; sys_platform == "linux"                      # SPI
+gpiozero>=2.0 ; sys_platform == "linux"                    # GPIO (power rails por puerto)
+
+# --- BLE peripheral (BlueZ via D-Bus) ------------------------
+bluez-peripheral>=0.1.10 ; sys_platform == "linux"
+dbus-fast>=2.21 ; sys_platform == "linux"
+
+# --- LoRaWAN / TTN -------------------------------------------
+paho-mqtt>=2.1.0
+
+# --- ML inferencia on-device (cuantización int8 recomendada) -
+tflite-runtime>=2.14.0 ; sys_platform == "linux"
+numpy>=1.26
+
+# --- Coordinación / utilidades -------------------------------
+janus>=1.0.0                                               # cola threads ↔ asyncio
+pydantic>=2.6                                              # validación de config

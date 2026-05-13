@@ -1,24 +1,16 @@
-"""
-Savia firmware (Python) — entry point.
+"""Savia firmware (Python) — entry point."""
 
-Bootstrap order:
-  1. Load config                       (savia.config)
-  2. Create shared events / queues     (savia.events)
-  3. Open SQLite                       (savia.storage)
-  4. Start native threads (blocking I/O):
-       - sensor reader                 (savia.sensors)
-       - storage writer                (savia.storage)
-  5. Run asyncio orchestrator          (savia.orchestrator)
-       - BLE peripheral                (savia.ble)
-       - LoRa uplink scheduler         (savia.lora)
-       - Supervisor / watchdog         (savia.supervisor)
-  6. ML inference is launched on demand as a multiprocessing.Process
-     by the orchestrator                (savia.ml).
-"""
+import logging
+
+from savia import app
 
 
 def main() -> None:
-    raise NotImplementedError("Skeleton — bootstrap to be implemented.")
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    )
+    app.run()
 
 
 if __name__ == "__main__":

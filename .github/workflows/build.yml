@@ -1,0 +1,49 @@
+name: build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest nuitka
+
+      - name: Run unit tests
+        run: python -m pytest
+
+      - name: Build binary with Nuitka
+        run: |
+          python -m nuitka \
+            --onefile \
+            --include-package=savia \
+            --output-dir=dist \
+            --output-filename=savia \
+            --remove-output \
+            --assume-yes-for-downloads \
+            main.py
+
+      - name: Smoke test binary
+        run: ./dist/savia
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: savia-linux-arm64
+          path: dist/savia
+          if-no-files-found: error

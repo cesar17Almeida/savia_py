@@ -1,0 +1,11 @@
+# Ejemplo de configuración para Savia.
+# Copiar como config.toml y ajustar valores.
+#
+# Si no se pasa --config al binario, se aplican los defaults de este
+# fichero (ver savia/config.py).
+
+log_level = "INFO"   # DEBUG | INFO | WARNING | ERROR | CRITICAL
+
+[storage]
+db_path = "./savia.db"
+retention_hours = 48

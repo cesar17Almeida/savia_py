@@ -12,11 +12,15 @@ modo que el resto del firmware (reader thread, storage) no se entera
 de si está leyendo hardware o mock.
 """
 
+import logging
 import random
 from collections.abc import Sequence
 from datetime import datetime, timezone
 
+from savia.events import AppEvents
 from savia.types import Reading
+
+logger = logging.getLogger(__name__)
 
 DEFAULT_DEPTHS_CM: tuple[int, ...] = (10, 20, 30, 40, 50, 60)
 
@@ -84,3 +88,33 @@ class MockSDI12Probe:
                 )
             )
         return readings
+
+
+def run_sensor_loop(
+    probe: MockSDI12Probe,
+    events: AppEvents,
+    period_s: float,
+) -> None:
+    """
+    Bucle de lectura para correr en un threading.Thread.
+
+    Pide `probe.measure()`, empuja cada Reading a `events.readings` y
+    duerme `period_s` segundos antes del siguiente ciclo. Sale en
+    cuanto `events.stop` se activa (sin esperar el periodo completo).
+
+    `SensorError` se loguea como warning y se continúa — un fallo
+    puntual de lectura no tumba el firmware.
+    """
+    logger.info("sensor loop start: port=%d period=%.2fs", probe.port, period_s)
+    while not events.stop.is_set():
+        try:
+            readings = probe.measure()
+        except SensorError as exc:
+            logger.warning("port=%d measure failed: %s", probe.port, exc)
+        else:
+            for r in readings:
+                events.readings.put(r)
+            logger.debug("port=%d enqueued %d readings", probe.port, len(readings))
+        if events.stop.wait(timeout=period_s):
+            break
+    logger.info("sensor loop stop: port=%d", probe.port)

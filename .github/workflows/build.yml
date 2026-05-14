@@ -41,9 +41,15 @@ jobs:
       - name: Smoke test binary
         run: ./dist/savia
 
+      # Subir el binario solo cuando lo pedimos explícitamente
+      # (workflow_dispatch desde la UI) o al hacer un tag. En los
+      # pushes habituales no se sube — ahorra cuota de almacenamiento
+      # y el build/test sigue validando cada commit.
       - name: Upload binary artifact
+        if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v4
         with:
           name: savia-linux-arm64
           path: dist/savia
+          retention-days: 30
           if-no-files-found: error
